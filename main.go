@@ -60,7 +60,7 @@ func main() {
 		Transport: &http.Transport{
 			MaxIdleConns:       20,
 			MaxConnsPerHost:    2,
-			IdleConnTimeout:    15 * time.Second,
+			IdleConnTimeout:    opts.interval + 10*time.Second,
 			DisableCompression: true,  // We don't need response body
 			DisableKeepAlives:  false, // Enable keep-alives for better performance
 		},
