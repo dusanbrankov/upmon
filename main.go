@@ -56,13 +56,15 @@ func main() {
 	}
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
-			MaxIdleConns:       20,
-			MaxConnsPerHost:    2,
-			IdleConnTimeout:    opts.interval + 10*time.Second,
-			DisableCompression: true,  // We don't need response body
-			DisableKeepAlives:  false, // Enable keep-alives for better performance
+			MaxIdleConns:          20,
+			MaxConnsPerHost:       2,
+			IdleConnTimeout:       opts.interval + 10*time.Second,
+			DisableCompression:    true,  // We don't need response body
+			DisableKeepAlives:     false, // Enable keep-alives for better performance
+			ResponseHeaderTimeout: 5 * time.Second,
+			TLSHandshakeTimeout:   5 * time.Second,
 		},
 	}
 
