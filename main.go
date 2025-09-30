@@ -19,26 +19,38 @@ import (
 
 var urlSchemeRX = regexp.MustCompile("^https?$")
 
+type urlList []string
+
 type options struct {
+	urls     urlList
 	interval time.Duration
 	quiet    bool
+}
+
+func (s *urlList) String() string {
+	return fmt.Sprintf("%v", *s)
+}
+
+func (s *urlList) Set(value string) error {
+	*s = append(*s, value)
+	return nil
 }
 
 func main() {
 	var opts options
 
+	flag.Var(&opts.urls, "url", "URL to monitor (can be specified multiple times)")
 	flag.DurationVar(&opts.interval, "interval", time.Minute, "Interval between checks, e.g. 30s, 1m, 2h")
 	flag.BoolVar(&opts.quiet, "quiet", false, "Suppress output for successful lookups")
 	flag.Parse()
 
-	urls := []string{
-		"https://wunderbaum.expert",
-		"https://ic-berlin.club",
-		"https://clonesintergalactic.com",
-		"https://dbran.cc",
+	if len(opts.urls) == 0 {
+		fmt.Fprintln(os.Stderr, "Error: at least one -url must be provided")
+		flag.Usage()
+		os.Exit(1)
 	}
 
-	parsed, errs := parseURLs(urls)
+	parsed, errs := parseURLs(opts.urls)
 	if len(errs) > 0 {
 		for _, err := range errs {
 			fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -68,11 +80,11 @@ func main() {
 		},
 	}
 
-	results := make(chan result, len(urls))
+	results := make(chan result, len(opts.urls))
 
 	// First run before the ticker
-	for _, url := range parsed {
-		go checkURL(client, url.String(), results)
+	for _, url := range opts.urls {
+		go checkURL(client, url, results)
 	}
 
 	quit := make(chan os.Signal, 1)
