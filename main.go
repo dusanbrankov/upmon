@@ -193,3 +193,7 @@ func pingHosts(urls []*url.URL) []error {
 
 	return errs
 }
+
+func timestamp() string {
+	return time.Now().UTC().Format(time.RFC3339)
+}
