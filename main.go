@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -19,11 +19,14 @@ import (
 
 var urlSchemeRX = regexp.MustCompile("^https?$")
 
+var ErrUnknownFormat = errors.New("-output: unknown format")
+
 type urlList []string
 
 type options struct {
 	urls     urlList
 	interval time.Duration
+	output   string
 	quiet    bool
 }
 
@@ -41,6 +44,7 @@ func main() {
 
 	flag.Var(&opts.urls, "url", "URL to monitor (can be specified multiple times)")
 	flag.DurationVar(&opts.interval, "interval", time.Minute, "Interval between checks, e.g. 30s, 1m, 2h")
+	flag.StringVar(&opts.output, "output", "kv", "Output format: kv (key-value), json, pretty (pretty-printed JSON)")
 	flag.BoolVar(&opts.quiet, "quiet", false, "Suppress output for successful lookups")
 	flag.Parse()
 
@@ -99,7 +103,14 @@ func main() {
 				go checkURL(client, url.String(), results)
 			}
 		case res := <-results:
-			logResult(res, opts)
+			if err := res.log(opts.output); err != nil {
+				if errors.Is(err, ErrUnknownFormat) {
+					fmt.Fprintf(os.Stderr, "upmon: %v\n", err)
+				} else {
+					fmt.Fprintf(os.Stderr, "upmon: error: %v\n", err)
+				}
+				os.Exit(1)
+			}
 		case <-quit:
 			fmt.Println("upmon: shutting down...")
 			return
@@ -107,27 +118,57 @@ func main() {
 	}
 }
 
-func logResult(res result, opts options) {
-	if res.err != nil {
-		log.Printf("%-40s %q\n", res.url, res.err.Error())
-	} else if !okResponse(res.statusCode) {
-		log.Printf("%-40s status code: %d\n", res.url, res.statusCode)
-	} else if !opts.quiet {
-		log.Printf("%-40s %s\n", res.url, res.latency)
+func (r result) log(format string) error {
+	var err error
+	switch format {
+	case "json", "pretty":
+		err = r.logJSON(format == "pretty")
+	case "kv":
+		r.logKV()
+	default:
+		err = ErrUnknownFormat
 	}
+	return err
+}
+
+func (r result) logJSON(pretty bool) error {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetEscapeHTML(false)
+	if pretty {
+		enc.SetIndent("", "  ")
+	}
+	return enc.Encode(r)
+}
+
+func (r result) logKV() {
+	errStr := "nil"
+	if r.Error != nil {
+		errStr = r.Error.Error()
+	}
+	fmt.Printf("time=%s url=%s status=%d latency=%s retries=%d error=%q\n",
+		r.Time,
+		r.URL,
+		r.Status,
+		r.Latency,
+		r.Retries,
+		errStr,
+	)
 }
 
 type result struct {
-	url        string
-	statusCode int
-	err        error
-	latency    time.Duration
+	Time    string `json:"time"`
+	URL     string `json:"url"`
+	Status  int    `json:"status"`
+	Latency string `json:"latency"`
+	Retries int    `json:"retries"`
+	Error   error  `json:"error"`
 }
 
 func checkURL(client *http.Client, url string, ch chan<- result) {
+
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		ch <- result{url, 0, err, 0}
+		ch <- result{Time: timestamp(), URL: url, Error: err}
 		return
 	}
 	req.Header.Set("User-Agent", "upmon-cli/0.1")
@@ -135,15 +176,18 @@ func checkURL(client *http.Client, url string, ch chan<- result) {
 	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
-		ch <- result{url, 0, err, 0}
+		ch <- result{Time: timestamp(), URL: url, Error: err}
 		return
 	}
 	defer resp.Body.Close()
+
 	ch <- result{
-		url:        url,
-		statusCode: resp.StatusCode,
-		err:        nil,
-		latency:    time.Since(start).Round(time.Millisecond),
+		Time:    timestamp(),
+		URL:     url,
+		Status:  resp.StatusCode,
+		Latency: time.Since(start).Round(time.Millisecond).String(),
+		Retries: 0,
+		Error:   nil,
 	}
 }
 
