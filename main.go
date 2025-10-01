@@ -49,7 +49,7 @@ func main() {
 	flag.Parse()
 
 	if len(opts.urls) == 0 {
-		fmt.Fprintln(os.Stderr, "Error: at least one -url must be provided")
+		fmt.Fprintln(os.Stderr, "upmon: at least one -url must be provided")
 		flag.Usage()
 		os.Exit(1)
 	}
