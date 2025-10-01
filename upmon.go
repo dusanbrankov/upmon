@@ -144,27 +144,24 @@ func (r result) logJSON(pretty bool) error {
 }
 
 func (r result) logKV() {
-	errStr := "nil"
-	if r.Error != nil {
-		errStr = r.Error.Error()
-	}
 	fmt.Printf("time=%s url=%s status=%d latency=%s retries=%d error=%q\n",
 		r.Time,
 		r.URL,
 		r.Status,
 		r.Latency,
 		r.Retries,
-		errStr,
+		r.ErrorMsg,
 	)
 }
 
 type result struct {
-	Time    string `json:"time"`
-	URL     string `json:"url"`
-	Status  int    `json:"status"`
-	Latency string `json:"latency"`
-	Retries int    `json:"retries"`
-	Error   error  `json:"error"`
+	Time     string `json:"time"`
+	URL      string `json:"url"`
+	Status   int    `json:"status"`
+	Latency  string `json:"latency"`
+	Retries  int    `json:"retries"`
+	Error    error  `json:"-"`
+	ErrorMsg string `json:"error"`
 }
 
 func checkURL(client *http.Client, url string, method string, ch chan<- result) {
@@ -178,18 +175,18 @@ func checkURL(client *http.Client, url string, method string, ch chan<- result) 
 	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
-		ch <- result{Time: timestamp(), URL: url, Error: err}
+		ch <- result{Time: timestamp(), URL: url, ErrorMsg: err.Error()}
 		return
 	}
 	defer resp.Body.Close()
 
 	ch <- result{
-		Time:    timestamp(),
-		URL:     url,
-		Status:  resp.StatusCode,
-		Latency: time.Since(start).Round(time.Millisecond).String(),
-		Retries: 0,
-		Error:   nil,
+		Time:     timestamp(),
+		URL:      url,
+		Status:   resp.StatusCode,
+		Latency:  time.Since(start).Round(time.Millisecond).String(),
+		Retries:  0,
+		ErrorMsg: "",
 	}
 }
 
