@@ -27,6 +27,7 @@ type options struct {
 	urls     urlList
 	interval time.Duration
 	output   string
+	method   string
 	quiet    bool
 }
 
@@ -45,6 +46,7 @@ func main() {
 	flag.Var(&opts.urls, "url", "URL to monitor (can be specified multiple times)")
 	flag.DurationVar(&opts.interval, "interval", time.Minute, "Interval between checks, e.g. 30s, 1m, 2h")
 	flag.StringVar(&opts.output, "output", "kv", "Output format: kv (key-value), json, pretty (pretty-printed JSON)")
+	flag.StringVar(&opts.method, "method", "get", "HTTP method to use for requests: get, head")
 	flag.BoolVar(&opts.quiet, "quiet", false, "Suppress output for successful lookups")
 	flag.Parse()
 
@@ -85,10 +87,11 @@ func main() {
 	}
 
 	results := make(chan result, len(opts.urls))
+	method := strings.ToUpper(opts.method)
 
 	// First run before the ticker
 	for _, url := range opts.urls {
-		go checkURL(client, url, results)
+		go checkURL(client, url, method, results)
 	}
 
 	quit := make(chan os.Signal, 1)
@@ -100,7 +103,7 @@ func main() {
 		select {
 		case <-ticker.C:
 			for _, url := range parsed {
-				go checkURL(client, url.String(), results)
+				go checkURL(client, url.String(), method, results)
 			}
 		case res := <-results:
 			if err := res.log(opts.output); err != nil {
@@ -164,9 +167,8 @@ type result struct {
 	Error   error  `json:"error"`
 }
 
-func checkURL(client *http.Client, url string, ch chan<- result) {
-
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func checkURL(client *http.Client, url string, method string, ch chan<- result) {
+	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		ch <- result{Time: timestamp(), URL: url, Error: err}
 		return
