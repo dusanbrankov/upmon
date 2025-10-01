@@ -103,8 +103,6 @@ func main() {
 		case <-quit:
 			fmt.Println("upmon: shutting down...")
 			return
-		default:
-			// non-blocking: if no results, loop continues
 		}
 	}
 }
