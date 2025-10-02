@@ -39,6 +39,7 @@ Options:
   -o    Output format: text, json, json-pretty
         (default: text)
   -u    URL of the website to be monitored. Can be specified multiple times.
+  -h    Show this help message
 `
 
 type urlList []string
