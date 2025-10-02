@@ -25,11 +25,11 @@ const (
 
 var ErrUnknownFormat = errors.New("-output: unknown format")
 
-var usage = `Usage: upmon [option]...
+var usage = `Usage: upmon [option]... <url>...
 Monitor the response status of URLs at regular intervals.
 
 Example:
-  upmon -i 3m -m HEAD -u site-a.com -u site-b.com -u site-c.com
+  upmon -i 3m -m HEAD https://example.com
 
 Options:
   -m    HTTP method to use when requesting URLs: GET, HEAD
@@ -50,15 +50,6 @@ type options struct {
 	method   string
 }
 
-func (s *urlList) String() string {
-	return fmt.Sprintf("%v", *s)
-}
-
-func (s *urlList) Set(value string) error {
-	*s = append(*s, value)
-	return nil
-}
-
 func main() {
 	var opts options
 
@@ -66,14 +57,17 @@ func main() {
 		fmt.Fprint(os.Stderr, usage)
 	}
 
-	flag.Var(&opts.urls, "u", "")
 	flag.DurationVar(&opts.interval, "i", time.Minute, "")
 	flag.StringVar(&opts.output, "o", "kv", "")
 	flag.StringVar(&opts.method, "m", "GET", "")
 	flag.Parse()
 
+	for _, arg := range flag.Args() {
+		opts.urls = append(opts.urls, arg)
+	}
+
 	if len(opts.urls) == 0 {
-		errorAndExit("at least one URL must be provided with -url")
+		usageAndExit("at least one URL must be provided\n")
 	}
 
 	parsed, errs := parseURLs(opts.urls)
@@ -271,6 +265,12 @@ func printError(format string, a ...any) {
 
 func errorAndExit(format string, a ...any) {
 	printError(format, a...)
+	os.Exit(1)
+}
+
+func usageAndExit(format string, a ...any) {
+	printError(format+"\n", a...)
+	flag.Usage()
 	os.Exit(1)
 }
 
