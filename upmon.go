@@ -25,6 +25,22 @@ const (
 
 var ErrUnknownFormat = errors.New("-output: unknown format")
 
+var usage = `Usage: upmon [option]...
+Monitor the response status of URLs at regular intervals.
+
+Example:
+  upmon -i 3m -m HEAD -u site-a.com -u site-b.com -u site-c.com
+
+Options:
+  -m    HTTP method to use when requesting URLs: GET, HEAD
+        (default: GET)
+  -i    Interval between checks: e.g. 30s, 1m, 2h
+        (default: 1m)
+  -o    Output format: text, json, json-pretty
+        (default: text)
+  -u    URL of the website to be monitored. Can be specified multiple times.
+`
+
 type urlList []string
 
 type options struct {
@@ -46,10 +62,14 @@ func (s *urlList) Set(value string) error {
 func main() {
 	var opts options
 
-	flag.Var(&opts.urls, "url", "URL to monitor (can be specified multiple times)")
-	flag.DurationVar(&opts.interval, "interval", time.Minute, "Interval between checks, e.g. 30s, 1m, 2h")
-	flag.StringVar(&opts.output, "output", "kv", "Output format: kv (key-value), json, pretty (pretty-printed JSON)")
-	flag.StringVar(&opts.method, "method", "get", "HTTP method to use for requests: get, head")
+	flag.Usage = func() {
+		fmt.Fprint(os.Stderr, usage)
+	}
+
+	flag.Var(&opts.urls, "u", "")
+	flag.DurationVar(&opts.interval, "i", time.Minute, "")
+	flag.StringVar(&opts.output, "o", "kv", "")
+	flag.StringVar(&opts.method, "m", "GET", "")
 	flag.Parse()
 
 	if len(opts.urls) == 0 {
