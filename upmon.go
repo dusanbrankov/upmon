@@ -18,6 +18,8 @@ import (
 )
 
 const (
+	version = "0.0.1"
+
 	urlSchemeRgx = `^https?$`
 )
 
@@ -167,7 +169,7 @@ func checkURL(client *http.Client, url string, method string, ch chan<- result) 
 		ch <- result{Time: timestamp(), URL: url, Error: err}
 		return
 	}
-	req.Header.Set("User-Agent", "upmon-cli/0.1")
+	req.Header.Set("User-Agent", "upmon/"+version)
 
 	start := time.Now()
 	resp, err := client.Do(req)
