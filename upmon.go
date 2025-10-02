@@ -38,7 +38,7 @@ Options:
         (default: 1m)
   -o    Output format: text, json, json-pretty
         (default: text)
-  -u    URL of the website to be monitored. Can be specified multiple times.
+  -q	Suppress non-error messages
   -h    Show this help message
 `
 
@@ -49,6 +49,7 @@ type options struct {
 	interval time.Duration
 	output   string
 	method   string
+	quiet    bool
 }
 
 func main() {
@@ -61,6 +62,7 @@ func main() {
 	flag.DurationVar(&opts.interval, "i", time.Minute, "")
 	flag.StringVar(&opts.output, "o", "kv", "")
 	flag.StringVar(&opts.method, "m", "GET", "")
+	flag.BoolVar(&opts.quiet, "q", false, "")
 	flag.Parse()
 
 	for _, arg := range flag.Args() {
@@ -204,6 +206,11 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 		return
 	}
 	defer resp.Body.Close()
+
+	if o.quiet {
+		// Suppress non-error messages in quiet mode
+		return
+	}
 
 	ch <- result{
 		Time:     timestamp(),
