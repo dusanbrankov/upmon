@@ -17,7 +17,9 @@ import (
 	"time"
 )
 
-var urlSchemeRX = regexp.MustCompile("^https?$")
+const (
+	urlSchemeRgx = `^https?$`
+)
 
 var ErrUnknownFormat = errors.New("-output: unknown format")
 
@@ -194,6 +196,8 @@ func okResponse(status int) bool {
 
 func parseURLs(urls []string) ([]*url.URL, []error) {
 	var errs []error
+	schemeRgx := regexp.MustCompile(urlSchemeRgx)
+
 	parsed := make([]*url.URL, 0, len(urls))
 	for _, u := range urls {
 		url, err := url.ParseRequestURI(u)
@@ -202,7 +206,7 @@ func parseURLs(urls []string) ([]*url.URL, []error) {
 			continue
 		}
 		scheme := url.Scheme
-		if !urlSchemeRX.MatchString(scheme) {
+		if !schemeRgx.MatchString(scheme) {
 			errs = append(errs, fmt.Errorf("protocol %q not supported: %s", url.Scheme, url.String()))
 			continue
 		}
