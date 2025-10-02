@@ -29,7 +29,7 @@ var usage = `Usage: upmon [option]... <url>...
 Monitor the response status of URLs at regular intervals.
 
 Example:
-  upmon -i 3m -m HEAD https://example.com
+  upmon -o json https://example.com https://httpbin.org/status/404
 
 Options:
   -m    HTTP method to use when requesting URLs: GET, HEAD
