@@ -49,17 +49,14 @@ func main() {
 	flag.Parse()
 
 	if len(opts.urls) == 0 {
-		fmt.Fprintln(os.Stderr, "upmon: at least one -url must be provided")
-		flag.Usage()
-		os.Exit(1)
+		errorAndExit("at least one URL must be provided with -url")
 	}
 
 	parsed, errs := parseURLs(opts.urls)
 	if len(errs) > 0 {
 		for _, err := range errs {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
+			printError("%s\n", err)
 		}
-		fmt.Fprint(os.Stderr, "\nURLs must have the following format: http[s]://[<subdomain>.]example.com\n")
 		os.Exit(1)
 	}
 
@@ -206,7 +203,7 @@ func parseURLs(urls []string) ([]*url.URL, []error) {
 		}
 		scheme := url.Scheme
 		if !urlSchemeRX.MatchString(scheme) {
-			errs = append(errs, fmt.Errorf("%s: unsupported scheme, must be \"http\" or \"https\"", url.Hostname()))
+			errs = append(errs, fmt.Errorf("protocol %q not supported: %s", url.Scheme, url.String()))
 			continue
 		}
 		parsed = append(parsed, url)
@@ -240,4 +237,18 @@ func pingHosts(urls []*url.URL) []error {
 
 func timestamp() string {
 	return time.Now().UTC().Format(time.RFC3339)
+}
+
+func printError(format string, a ...any) {
+	fmt.Fprintf(os.Stderr, "upmon: "+format, a...)
+}
+
+func errorAndExit(format string, a ...any) {
+	printError(format, a...)
+	os.Exit(1)
+}
+
+func fatalError(format string, a ...any) {
+	printError("error: "+format, a...)
+	os.Exit(1)
 }
