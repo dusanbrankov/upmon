@@ -108,11 +108,10 @@ func main() {
 	}
 
 	results := make(chan result, len(opts.urls))
-	method := strings.ToUpper(opts.method)
 
 	// First run before the ticker
 	for _, url := range opts.urls {
-		go checkURL(client, url, method, results)
+		go opts.checkURL(client, url, results)
 	}
 
 	quit := make(chan os.Signal, 1)
@@ -124,7 +123,7 @@ func main() {
 		select {
 		case <-ticker.C:
 			for _, url := range parsed {
-				go checkURL(client, url.String(), method, results)
+				go opts.checkURL(client, url.String(), results)
 			}
 		case res := <-results:
 			if err := res.log(opts.output); err != nil {
@@ -185,8 +184,10 @@ type result struct {
 	ErrorMsg string `json:"error"`
 }
 
-func checkURL(client *http.Client, url string, method string, ch chan<- result) {
-	req, err := http.NewRequest(method, url, nil)
+// checkURL performs an HTTP request to the given URL and sends the
+// result to the provided channel.
+func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
+	req, err := http.NewRequest(o.method, url, nil)
 	if err != nil {
 		ch <- result{Time: timestamp(), URL: url, Error: err}
 		return
