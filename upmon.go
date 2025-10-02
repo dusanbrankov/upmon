@@ -71,6 +71,13 @@ func main() {
 		usageAndExit("at least one URL must be provided\n")
 	}
 
+	switch opts.output {
+	case "", "json", "pretty", "kv":
+		// valid
+	default:
+		usageAndExit("unknown output format: %q\n", opts.output)
+	}
+
 	parsed, errs := parseURLs(opts.urls)
 	if len(errs) > 0 {
 		for _, err := range errs {
