@@ -28,7 +28,6 @@ type options struct {
 	interval time.Duration
 	output   string
 	method   string
-	quiet    bool
 }
 
 func (s *urlList) String() string {
@@ -47,7 +46,6 @@ func main() {
 	flag.DurationVar(&opts.interval, "interval", time.Minute, "Interval between checks, e.g. 30s, 1m, 2h")
 	flag.StringVar(&opts.output, "output", "kv", "Output format: kv (key-value), json, pretty (pretty-printed JSON)")
 	flag.StringVar(&opts.method, "method", "get", "HTTP method to use for requests: get, head")
-	flag.BoolVar(&opts.quiet, "quiet", false, "Suppress output for successful lookups")
 	flag.Parse()
 
 	if len(opts.urls) == 0 {
