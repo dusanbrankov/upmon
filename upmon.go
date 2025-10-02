@@ -81,7 +81,7 @@ func main() {
 	errs = pingHosts(parsed)
 	if len(errs) > 0 {
 		for _, err := range errs {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
+			printError("%s\n", err)
 		}
 		os.Exit(1)
 	}
@@ -248,7 +248,7 @@ func pingHosts(urls []*url.URL) []error {
 			if errors.As(err, &dnsErr) && strings.Contains(err.Error(), "connection refused") {
 				return []error{fmt.Errorf("network issue: %w", err)}
 			}
-			errs = append(errs, fmt.Errorf("check host %s: %w", u.Hostname(), err))
+			errs = append(errs, fmt.Errorf("ping host %s: %s", u.String(), err))
 		}
 	}
 
