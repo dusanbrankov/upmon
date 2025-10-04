@@ -74,7 +74,7 @@ func main() {
 	}
 
 	switch opts.output {
-	case "", "json", "pretty", "kv":
+	case "json", "pretty", "kv":
 		// valid
 	default:
 		usageAndExit("unknown output format: %q\n", opts.output)
