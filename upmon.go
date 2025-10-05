@@ -74,7 +74,7 @@ func main() {
 	}
 
 	switch opts.output {
-	case "json", "pretty", "kv":
+	case "kv", "json", "json-pretty":
 		// valid
 	default:
 		usageAndExit("unknown output format: %q\n", opts.output)
@@ -146,7 +146,7 @@ func main() {
 func (r result) log(format string) error {
 	var err error
 	switch format {
-	case "json", "pretty":
+	case "json", "json-pretty":
 		err = r.logJSON(format == "pretty")
 	case "kv":
 		r.logKV()
