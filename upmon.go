@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"regexp"
 	"strings"
 	"syscall"
 	"time"
@@ -17,8 +16,6 @@ import (
 
 const (
 	version = "0.0.1"
-
-	urlSchemeRgx = `^https?$`
 )
 
 var ErrUnknownFormat = errors.New("-output: unknown format")
@@ -259,7 +256,6 @@ func validateOutputFormat(format string) error {
 
 func parseURLs(urls []string) ([]*url.URL, []error) {
 	var errs []error
-	schemeRgx := regexp.MustCompile(urlSchemeRgx)
 
 	parsed := make([]*url.URL, 0, len(urls))
 	for _, u := range urls {
@@ -268,9 +264,15 @@ func parseURLs(urls []string) ([]*url.URL, []error) {
 			errs = append(errs, err)
 			continue
 		}
-		scheme := url.Scheme
-		if !schemeRgx.MatchString(scheme) {
-			errs = append(errs, fmt.Errorf("protocol %q not supported: %s", url.Scheme, url.String()))
+		switch url.Scheme {
+		case "http", "https":
+			// valid schemes
+		default:
+			errs = append(errs, fmt.Errorf("unsupported URL scheme: %s", url.Scheme))
+			continue
+		}
+		if url.Hostname() == "" {
+			errs = append(errs, fmt.Errorf("URL has no host: %s", u))
 			continue
 		}
 		parsed = append(parsed, url)
