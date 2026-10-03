@@ -138,7 +138,7 @@ func main() {
 				os.Exit(1)
 			}
 		case <-quit:
-			fmt.Println("upmon: shutting down...")
+			fmt.Fprintln(os.Stderr, "upmon: shutting down...")
 			return
 		}
 	}
