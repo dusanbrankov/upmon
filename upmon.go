@@ -73,6 +73,10 @@ func main() {
 		usageAndExit("at least one URL must be provided\n")
 	}
 
+	if err := validateInterval(opts.interval); err != nil {
+		errorAndExit("%v\n", err)
+	}
+
 	switch opts.output {
 	case "text", "json", "json-pretty":
 		// valid
@@ -118,6 +122,7 @@ func main() {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
 	ticker := time.NewTicker(opts.interval)
 	defer ticker.Stop()
 
@@ -226,6 +231,13 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 
 func okResponse(status int) bool {
 	return status >= 200 && status < 300
+}
+
+func validateInterval(interval time.Duration) error {
+	if interval <= 0 {
+		return errors.New("interval must be greater than zero")
+	}
+	return nil
 }
 
 func parseURLs(urls []string) ([]*url.URL, []error) {
