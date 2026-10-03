@@ -298,8 +298,3 @@ func usageAndExit(format string, a ...any) {
 	flag.Usage()
 	os.Exit(1)
 }
-
-func fatalError(format string, a ...any) {
-	printError("error: "+format, a...)
-	os.Exit(1)
-}
