@@ -173,18 +173,17 @@ func (r result) logText() {
 		r.Status,
 		r.Latency,
 		r.Retries,
-		r.ErrorMsg,
+		r.Error,
 	)
 }
 
 type result struct {
-	Time     string `json:"time"`
-	URL      string `json:"url"`
-	Status   int    `json:"status"`
-	Latency  string `json:"latency"`
-	Retries  int    `json:"retries"`
-	Error    error  `json:"-"`
-	ErrorMsg string `json:"error"`
+	Time    string `json:"time"`
+	URL     string `json:"url"`
+	Status  int    `json:"status"`
+	Latency string `json:"latency"`
+	Retries int    `json:"retries,omitempty"`
+	Error   string `json:"error"`
 }
 
 // checkURL performs an HTTP request to the given URL and sends the
@@ -192,7 +191,7 @@ type result struct {
 func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 	req, err := http.NewRequest(o.method, url, nil)
 	if err != nil {
-		ch <- result{Time: timestamp(), URL: url, Error: err}
+		ch <- result{Time: timestamp(), URL: url, Error: err.Error()}
 		return
 	}
 	req.Header.Set("User-Agent", "upmon/"+version)
@@ -200,13 +199,13 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
-		ch <- result{Time: timestamp(), URL: url, ErrorMsg: err.Error()}
+		ch <- result{Time: timestamp(), URL: url, Error: err.Error()}
 		return
 	}
 	defer resp.Body.Close()
 
 	if !okResponse(resp.StatusCode) {
-		ch <- result{Time: timestamp(), URL: url, Status: resp.StatusCode, ErrorMsg: http.StatusText(resp.StatusCode)}
+		ch <- result{Time: timestamp(), URL: url, Status: resp.StatusCode, Error: http.StatusText(resp.StatusCode)}
 		return
 	}
 
@@ -216,12 +215,12 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 	}
 
 	ch <- result{
-		Time:     timestamp(),
-		URL:      url,
-		Status:   resp.StatusCode,
-		Latency:  time.Since(start).Round(time.Millisecond).String(),
-		Retries:  0,
-		ErrorMsg: "",
+		Time:    timestamp(),
+		URL:     url,
+		Status:  resp.StatusCode,
+		Latency: time.Since(start).Round(time.Millisecond).String(),
+		Retries: 0,
+		Error:   "",
 	}
 }
 
