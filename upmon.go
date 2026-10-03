@@ -79,7 +79,7 @@ func main() {
 	case "text", "json", "json-pretty":
 		// valid
 	default:
-		usageAndExit("unknown output format: %q\n", opts.output)
+		usageAndExit("%s: %q\n", ErrUnknownFormat.Error(), opts.output)
 	}
 
 	opts.method = strings.ToUpper(opts.method)
