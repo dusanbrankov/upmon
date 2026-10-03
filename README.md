@@ -7,7 +7,7 @@ upmon is a small CLI program that monitors the response status of websites at re
 ```bash
 git clone https://github.com/dusanbrankov/upmon.git
 cd upmon
-make install
+go install .
 ```
 
 ## Usage
