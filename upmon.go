@@ -189,7 +189,12 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
-		ch <- result{Time: timestamp(), URL: url, Error: err.Error()}
+		ch <- result{
+			Time:    timestamp(),
+			URL:     url,
+			Latency: getLatency(start),
+			Error:   err.Error(),
+		}
 		return
 	}
 	defer resp.Body.Close()
