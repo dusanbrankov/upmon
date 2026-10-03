@@ -130,12 +130,7 @@ func main() {
 			}
 		case res := <-results:
 			if err := res.log(opts.output); err != nil {
-				if errors.Is(err, ErrUnknownFormat) {
-					fmt.Fprintf(os.Stderr, "upmon: %v\n", err)
-				} else {
-					fmt.Fprintf(os.Stderr, "upmon: error: %v\n", err)
-				}
-				os.Exit(1)
+				errorAndExit("%v\n", err)
 			}
 		case <-quit:
 			fmt.Fprintln(os.Stderr, "upmon: shutting down...")
