@@ -61,7 +61,7 @@ func main() {
 
 	flag.DurationVar(&opts.interval, "i", time.Minute, "")
 	flag.StringVar(&opts.output, "o", "text", "")
-	flag.StringVar(&opts.method, "m", "GET", "")
+	flag.StringVar(&opts.method, "m", http.MethodGet, "")
 	flag.BoolVar(&opts.quiet, "q", false, "")
 	flag.Parse()
 
@@ -82,6 +82,12 @@ func main() {
 		// valid
 	default:
 		usageAndExit("unknown output format: %q\n", opts.output)
+	}
+
+	opts.method = strings.ToUpper(opts.method)
+
+	if err := validateHTTPMethod(opts.method); err != nil {
+		errorAndExit("%v\n", err)
 	}
 
 	parsed, errs := parseURLs(opts.urls)
@@ -238,6 +244,15 @@ func validateInterval(interval time.Duration) error {
 		return errors.New("interval must be greater than zero")
 	}
 	return nil
+}
+
+func validateHTTPMethod(method string) error {
+	switch method {
+	case http.MethodGet, http.MethodHead:
+		return nil
+	default:
+		return fmt.Errorf("invalid HTTP method: %s", method)
+	}
 }
 
 func parseURLs(urls []string) ([]*url.URL, []error) {
