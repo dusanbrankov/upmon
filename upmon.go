@@ -60,7 +60,7 @@ func main() {
 	}
 
 	flag.DurationVar(&opts.interval, "i", time.Minute, "")
-	flag.StringVar(&opts.output, "o", "kv", "")
+	flag.StringVar(&opts.output, "o", "text", "")
 	flag.StringVar(&opts.method, "m", "GET", "")
 	flag.BoolVar(&opts.quiet, "q", false, "")
 	flag.Parse()
@@ -74,7 +74,7 @@ func main() {
 	}
 
 	switch opts.output {
-	case "kv", "json", "json-pretty":
+	case "text", "json", "json-pretty":
 		// valid
 	default:
 		usageAndExit("unknown output format: %q\n", opts.output)
@@ -147,9 +147,9 @@ func (r result) log(format string) error {
 	var err error
 	switch format {
 	case "json", "json-pretty":
-		err = r.logJSON(format == "pretty")
-	case "kv":
-		r.logKV()
+		err = r.logJSON(format == "json-pretty")
+	case "text":
+		r.logText()
 	default:
 		err = ErrUnknownFormat
 	}
@@ -165,7 +165,7 @@ func (r result) logJSON(pretty bool) error {
 	return enc.Encode(r)
 }
 
-func (r result) logKV() {
+func (r result) logText() {
 	fmt.Printf("time=%s url=%s status=%d latency=%s retries=%d error=%q\n",
 		r.Time,
 		r.URL,
