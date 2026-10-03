@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -91,14 +89,6 @@ func main() {
 	}
 
 	parsed, errs := parseURLs(opts.urls)
-	if len(errs) > 0 {
-		for _, err := range errs {
-			printError("%s\n", err)
-		}
-		os.Exit(1)
-	}
-
-	errs = pingHosts(parsed)
 	if len(errs) > 0 {
 		for _, err := range errs {
 			printError("%s\n", err)
@@ -274,30 +264,6 @@ func parseURLs(urls []string) ([]*url.URL, []error) {
 		parsed = append(parsed, url)
 	}
 	return parsed, errs
-}
-
-func pingHosts(urls []*url.URL) []error {
-	var errs []error
-
-	resolver := net.Resolver{
-		PreferGo:     true,
-		StrictErrors: true,
-	}
-
-	for _, u := range urls {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		_, err := resolver.LookupHost(ctx, u.Hostname())
-		cancel()
-		if err != nil {
-			var dnsErr *net.DNSError
-			if errors.As(err, &dnsErr) && strings.Contains(err.Error(), "connection refused") {
-				return []error{fmt.Errorf("network issue: %w", err)}
-			}
-			errs = append(errs, fmt.Errorf("ping host %s: %s", u.String(), err))
-		}
-	}
-
-	return errs
 }
 
 func timestamp() string {
