@@ -75,11 +75,8 @@ func main() {
 		errorAndExit("%v\n", err)
 	}
 
-	switch opts.output {
-	case "text", "json", "json-pretty":
-		// valid
-	default:
-		usageAndExit("%s: %q\n", ErrUnknownFormat.Error(), opts.output)
+	if err := validateOutputFormat(opts.output); err != nil {
+		errorAndExit("%v\n", err)
 	}
 
 	opts.method = strings.ToUpper(opts.method)
@@ -243,6 +240,15 @@ func validateHTTPMethod(method string) error {
 		return nil
 	default:
 		return fmt.Errorf("invalid HTTP method: %s", method)
+	}
+}
+
+func validateOutputFormat(format string) error {
+	switch format {
+	case "text", "json", "json-pretty":
+		return nil
+	default:
+		return fmt.Errorf("unknown output format: %q", format)
 	}
 }
 
