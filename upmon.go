@@ -37,10 +37,8 @@ Options:
   -h    Show this help message
 `
 
-type urlList []string
-
 type options struct {
-	urls     urlList
+	urls     []string
 	interval time.Duration
 	output   string
 	method   string
