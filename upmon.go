@@ -205,7 +205,13 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 	defer resp.Body.Close()
 
 	if !okResponse(resp.StatusCode) {
-		ch <- result{Time: timestamp(), URL: url, Status: resp.StatusCode, Error: http.StatusText(resp.StatusCode)}
+		ch <- result{
+			Time:    timestamp(),
+			URL:     url,
+			Status:  resp.StatusCode,
+			Latency: getLatency(start),
+			Error:   http.StatusText(resp.StatusCode),
+		}
 		return
 	}
 
@@ -218,10 +224,14 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 		Time:    timestamp(),
 		URL:     url,
 		Status:  resp.StatusCode,
-		Latency: time.Since(start).Round(time.Millisecond).String(),
+		Latency: getLatency(start),
 		Retries: 0,
 		Error:   "",
 	}
+}
+
+func getLatency(start time.Time) string {
+	return time.Since(start).Round(time.Millisecond).String()
 }
 
 func okResponse(status int) bool {
