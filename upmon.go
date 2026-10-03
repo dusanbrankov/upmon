@@ -105,10 +105,14 @@ func main() {
 
 	results := make(chan result, len(opts.urls))
 
-	// First run before the ticker
-	for _, url := range opts.urls {
-		go opts.checkURL(client, url, results)
+	checkURLs := func() {
+		for _, url := range parsed {
+			go opts.checkURL(client, url.String(), results)
+		}
 	}
+
+	// First run before the ticker
+	checkURLs()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -119,9 +123,7 @@ func main() {
 	for {
 		select {
 		case <-ticker.C:
-			for _, url := range parsed {
-				go opts.checkURL(client, url.String(), results)
-			}
+			checkURLs()
 		case res := <-results:
 			if err := res.log(opts.output); err != nil {
 				errorAndExit("%v\n", err)
