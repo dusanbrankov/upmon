@@ -167,12 +167,11 @@ func (r result) logJSON(pretty bool) error {
 }
 
 func (r result) logText() {
-	fmt.Printf("time=%s url=%s status=%d latency=%s retries=%d error=%q\n",
+	fmt.Printf("time=%s url=%s status=%d latency=%s error=%q\n",
 		r.Time,
 		r.URL,
 		r.Status,
 		r.Latency,
-		r.Retries,
 		r.Error,
 	)
 }
@@ -182,7 +181,6 @@ type result struct {
 	URL     string `json:"url"`
 	Status  int    `json:"status"`
 	Latency string `json:"latency"`
-	Retries int    `json:"retries,omitempty"`
 	Error   string `json:"error"`
 }
 
@@ -225,7 +223,6 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 		URL:     url,
 		Status:  resp.StatusCode,
 		Latency: getLatency(start),
-		Retries: 0,
 		Error:   "",
 	}
 }
