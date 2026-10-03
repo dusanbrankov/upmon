@@ -201,11 +201,13 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 	if err != nil {
 		ch <- result{Time: timestamp(), URL: url, ErrorMsg: err.Error()}
 		return
-	} else if !okResponse(resp.StatusCode) {
+	}
+	defer resp.Body.Close()
+
+	if !okResponse(resp.StatusCode) {
 		ch <- result{Time: timestamp(), URL: url, Status: resp.StatusCode, ErrorMsg: http.StatusText(resp.StatusCode)}
 		return
 	}
-	defer resp.Body.Close()
 
 	if o.quiet {
 		// Suppress non-error messages in quiet mode
