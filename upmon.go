@@ -88,18 +88,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:          20,
-			MaxConnsPerHost:       2,
-			IdleConnTimeout:       opts.interval + 10*time.Second,
-			DisableCompression:    true,  // We don't need response body
-			DisableKeepAlives:     false, // Enable keep-alives for better performance
-			ResponseHeaderTimeout: 5 * time.Second,
-			TLSHandshakeTimeout:   5 * time.Second,
-		},
-	}
+	client := newHTTPClient()
 
 	results := make(chan result, len(opts.urls))
 
@@ -278,6 +267,20 @@ func parseURLs(urls []string) ([]*url.URL, []error) {
 		parsed = append(parsed, url)
 	}
 	return parsed, errs
+}
+
+func newHTTPClient() *http.Client {
+	t := http.DefaultTransport.(*http.Transport).Clone()
+
+	t.DisableCompression = true
+	t.MaxConnsPerHost = 2
+	t.ResponseHeaderTimeout = 5 * time.Second
+	t.TLSHandshakeTimeout = 5 * time.Second
+
+	return &http.Client{
+		Transport: t,
+		Timeout:   10 * time.Second,
+	}
 }
 
 func timestamp() string {
