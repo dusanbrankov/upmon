@@ -124,16 +124,14 @@ func main() {
 }
 
 func (r result) log(w io.Writer, format string) error {
-	var err error
 	switch format {
 	case "json", "json-pretty":
-		err = r.logJSON(w, format == "json-pretty")
+		return r.logJSON(w, format == "json-pretty")
 	case "text":
-		r.logText(w)
+		return r.logText(w)
 	default:
-		err = ErrUnknownFormat
+		return ErrUnknownFormat
 	}
-	return err
 }
 
 func (r result) logJSON(w io.Writer, pretty bool) error {
@@ -145,14 +143,15 @@ func (r result) logJSON(w io.Writer, pretty bool) error {
 	return enc.Encode(r)
 }
 
-func (r result) logText(w io.Writer) {
-	fmt.Fprintf(w, "time=%s url=%s status=%d latency=%s error=%q\n",
+func (r result) logText(w io.Writer) error {
+	_, err := fmt.Fprintf(w, "time=%s url=%s status=%d latency=%s error=%q\n",
 		r.Time,
 		r.URL,
 		r.Status,
 		r.Latency,
 		r.Error,
 	)
+	return err
 }
 
 type result struct {
