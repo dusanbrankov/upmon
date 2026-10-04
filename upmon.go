@@ -57,10 +57,19 @@ func main() {
 	flag.StringVar(&opts.output, "o", "text", "")
 	flag.StringVar(&opts.method, "m", http.MethodGet, "")
 	flag.BoolVar(&opts.quiet, "q", false, "")
+
+	help := flag.Bool("h", false, "Show this help message and exit")
+
 	flag.Parse()
 
-	for _, arg := range flag.Args() {
-		opts.urls = append(opts.urls, arg)
+	if *help {
+		fmt.Fprint(os.Stdout, usage)
+		return
+	}
+
+	urls := flag.Args()
+	for _, u := range urls {
+		opts.urls = append(opts.urls, u)
 	}
 
 	if len(opts.urls) == 0 {
