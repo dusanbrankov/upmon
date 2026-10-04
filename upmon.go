@@ -248,23 +248,23 @@ func parseURLs(urls []string) ([]*url.URL, []error) {
 
 	parsed := make([]*url.URL, 0, len(urls))
 	for _, u := range urls {
-		url, err := url.ParseRequestURI(u)
+		parsedURL, err := url.ParseRequestURI(u)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
-		switch url.Scheme {
+		switch parsedURL.Scheme {
 		case "http", "https":
 			// valid schemes
 		default:
-			errs = append(errs, fmt.Errorf("unsupported URL scheme: %s", url.Scheme))
+			errs = append(errs, fmt.Errorf("unsupported URL scheme: %s", parsedURL.Scheme))
 			continue
 		}
-		if url.Hostname() == "" {
+		if parsedURL.Hostname() == "" {
 			errs = append(errs, fmt.Errorf("URL has no host: %s", u))
 			continue
 		}
-		parsed = append(parsed, url)
+		parsed = append(parsed, parsedURL)
 	}
 	return parsed, errs
 }
