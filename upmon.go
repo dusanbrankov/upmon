@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -112,7 +113,7 @@ func main() {
 		case <-ticker.C:
 			checkURLs()
 		case res := <-results:
-			if err := res.log(opts.output); err != nil {
+			if err := res.log(os.Stdout, opts.output); err != nil {
 				errorAndExit("%v\n", err)
 			}
 		case <-quit:
@@ -122,21 +123,21 @@ func main() {
 	}
 }
 
-func (r result) log(format string) error {
+func (r result) log(w io.Writer, format string) error {
 	var err error
 	switch format {
 	case "json", "json-pretty":
-		err = r.logJSON(format == "json-pretty")
+		err = r.logJSON(w, format == "json-pretty")
 	case "text":
-		r.logText()
+		r.logText(w)
 	default:
 		err = ErrUnknownFormat
 	}
 	return err
 }
 
-func (r result) logJSON(pretty bool) error {
-	enc := json.NewEncoder(os.Stdout)
+func (r result) logJSON(w io.Writer, pretty bool) error {
+	enc := json.NewEncoder(w)
 	enc.SetEscapeHTML(false)
 	if pretty {
 		enc.SetIndent("", "  ")
@@ -144,8 +145,8 @@ func (r result) logJSON(pretty bool) error {
 	return enc.Encode(r)
 }
 
-func (r result) logText() {
-	fmt.Printf("time=%s url=%s status=%d latency=%s error=%q\n",
+func (r result) logText(w io.Writer) {
+	fmt.Fprintf(w, "time=%s url=%s status=%d latency=%s error=%q\n",
 		r.Time,
 		r.URL,
 		r.Status,
