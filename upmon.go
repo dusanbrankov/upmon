@@ -19,7 +19,7 @@ const (
 	userAgent = "upmon/0.0.1"
 )
 
-var ErrUnknownFormat = errors.New("unknown output format")
+var errUnknownFormat = errors.New("unknown output format")
 
 var usage = `Usage: upmon [option]... <url>...
 Monitor the response status of URLs at regular intervals.
@@ -130,7 +130,7 @@ func (r result) log(w io.Writer, format string) error {
 	case "text":
 		return r.logText(w)
 	default:
-		return ErrUnknownFormat
+		return errUnknownFormat
 	}
 }
 
