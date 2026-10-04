@@ -279,7 +279,6 @@ func newHTTPClient() *http.Client {
 	t := http.DefaultTransport.(*http.Transport).Clone()
 
 	t.DisableCompression = true
-	t.MaxConnsPerHost = 2
 	t.ResponseHeaderTimeout = 5 * time.Second
 	t.TLSHandshakeTimeout = 5 * time.Second
 
