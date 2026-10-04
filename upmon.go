@@ -67,14 +67,11 @@ func main() {
 		return
 	}
 
-	urls := flag.Args()
-	for _, u := range urls {
-		opts.urls = append(opts.urls, u)
-	}
-
-	if len(opts.urls) == 0 {
+	if flag.NArg() == 0 {
 		usageAndExit("at least one URL must be provided")
 	}
+
+	opts.urls = flag.Args()
 
 	if err := validateInterval(opts.interval); err != nil {
 		errorAndExit(err)
