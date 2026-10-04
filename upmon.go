@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	version = "0.0.1"
+	userAgent = "upmon/0.0.1"
 )
 
 var ErrUnknownFormat = errors.New("unknown output format")
@@ -170,7 +170,7 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 		ch <- result{Time: timestamp(), URL: url, Error: err.Error()}
 		return
 	}
-	req.Header.Set("User-Agent", "upmon/"+version)
+	req.Header.Set("User-Agent", userAgent)
 
 	start := time.Now()
 	resp, err := client.Do(req)
