@@ -184,7 +184,7 @@ func (o options) checkURL(client *http.Client, url string, ch chan<- result) {
 		}
 		return
 	}
-	defer resp.Body.Close()
+	resp.Body.Close()
 
 	if !okResponse(resp.StatusCode) {
 		ch <- result{
