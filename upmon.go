@@ -64,21 +64,21 @@ func main() {
 	}
 
 	if len(opts.urls) == 0 {
-		usageAndExit("at least one URL must be provided\n")
+		usageAndExit("at least one URL must be provided")
 	}
 
 	if err := validateInterval(opts.interval); err != nil {
-		errorAndExit("%v\n", err)
+		errorAndExit(err)
 	}
 
 	if err := validateOutputFormat(opts.output); err != nil {
-		errorAndExit("%v\n", err)
+		errorAndExit(err)
 	}
 
 	opts.method = strings.ToUpper(opts.method)
 
 	if err := validateHTTPMethod(opts.method); err != nil {
-		errorAndExit("%v\n", err)
+		errorAndExit(err)
 	}
 
 	parsed, errs := parseURLs(opts.urls)
@@ -114,7 +114,7 @@ func main() {
 			checkURLs()
 		case res := <-results:
 			if err := res.log(os.Stdout, opts.output); err != nil {
-				errorAndExit("%v\n", err)
+				errorAndExit(err)
 			}
 		case <-quit:
 			fmt.Fprintln(os.Stderr, "upmon: shutting down...")
@@ -291,13 +291,15 @@ func printError(format string, a ...any) {
 	fmt.Fprintf(os.Stderr, "upmon: "+format, a...)
 }
 
-func errorAndExit(format string, a ...any) {
-	printError(format, a...)
+func errorAndExit(err error) {
+	printError("%v\n", err)
 	os.Exit(1)
 }
 
 func usageAndExit(format string, a ...any) {
-	printError(format+"\n", a...)
+	if format != "" {
+		printError(format+"\n\n", a...)
+	}
 	flag.Usage()
 	os.Exit(1)
 }
