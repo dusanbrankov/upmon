@@ -21,7 +21,7 @@ const (
 
 var errUnknownFormat = errors.New("unknown output format")
 
-var usage = `Usage: upmon [option]... <url>...
+const usage = `Usage: upmon [option]... <url>...
 Monitor the response status of URLs at regular intervals.
 
 Example:
